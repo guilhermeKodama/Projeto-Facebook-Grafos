@@ -16,6 +16,9 @@
 
 package com.facebook.samples.sessionlogin;
 
+import org.json.*;
+
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -56,8 +59,10 @@ public class LoginUsingActivityActivity extends Activity {
         queryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String fqlQuery = "SELECT uid, name, pic_square FROM user WHERE uid IN " +
-                      "(SELECT uid2 FROM friend WHERE uid1 = me() LIMIT 25)";
+            	/*String fqlQuery = "SELECT uid, name, pic_square FROM user WHERE uid IN " +
+                        "(SELECT uid2 FROM friend WHERE uid1 = me())";*/
+            	String fqlQuery = "SELECT uid, name FROM user WHERE uid IN " +
+                        "(SELECT uid2 FROM friend WHERE uid1 = me() LIMIT 1)";
                 Bundle params = new Bundle();
                 params.putString("q", fqlQuery);
                 Session session = Session.getActiveSession();
@@ -67,38 +72,33 @@ public class LoginUsingActivityActivity extends Activity {
                     HttpMethod.GET,                 
                     new Request.Callback(){         
                         public void onCompleted(Response response) {
-                            Log.i("Resultado", "Result: " + response.toString());
+                        	/*Recupera informacão de uma pagina HTML , transforma em uma String
+                        	 * e joga em um objeto Json para popular o BD*/
+                        	
+                        	String jsonData = response.toString();
+                        	
+                        	try {
+                        		
+								JSONObject json = new JSONObject(jsonData.substring(93,jsonData.length()-2));
+								/*JSONArray id = json.getJSONArray("uid");
+								JSONArray name = json.getJSONArray("name");
+								
+								for(int i=0;i<id.length();i++){
+									Log.e("Amigo", "ID: " +id.getString(i));
+									Log.e("Amigo", "NAME: " +name.getString(i));
+								}*/
+								
+							} catch (JSONException e) {
+								e.printStackTrace();
+							}
+                            Log.e("json data",jsonData.substring(93,jsonData.length()-2));
                         }                  
                 }); 
                 Request.executeBatchAsync(request);                 
             }
         });
         
-        /*Botão multi query*/
-        multiQueryButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                String fqlQuery = "{" +
-                      "'friends':'SELECT uid2 FROM friend WHERE uid1 = me() LIMIT 25'," +
-                      "'friendinfo':'SELECT uid, name, pic_square FROM user WHERE uid IN " +
-                      "(SELECT uid2 FROM #friends)'," +
-                      "}";
-                Bundle params = new Bundle();
-                params.putString("q", fqlQuery);
-                Session session = Session.getActiveSession();
-                Request request = new Request(session,
-                    "/fql",                         
-                    params,                         
-                    HttpMethod.GET,                 
-                    new Request.Callback(){         
-                        public void onCompleted(Response response) {
-                            Log.i("RESULTADO MULTIQUERY", "Result: " + response.toString());
-                        }                  
-                }); 
-                Request.executeBatchAsync(request);                 
-            }
-        });
+        
 
         Settings.addLoggingBehavior(LoggingBehavior.INCLUDE_ACCESS_TOKENS);
 
@@ -188,3 +188,28 @@ public class LoginUsingActivityActivity extends Activity {
         }
     }
 }
+/*Botão multi query
+multiQueryButton.setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onClick(View v) {
+
+    	String fqlQuery = "{" +
+                "'friends':'SELECT uid2 FROM friend WHERE uid1 = me()'," +
+                "'friendinfo':'SELECT uid, name, pic_square FROM user WHERE uid IN " +
+                "(SELECT uid2 FROM #friends)'," +
+                "}";
+        Bundle params = new Bundle();
+        params.putString("q", fqlQuery);
+        Session session = Session.getActiveSession();
+        Request request = new Request(session,
+            "/fql",                         
+            params,                         
+            HttpMethod.GET,                 
+            new Request.Callback(){         
+                public void onCompleted(Response response) {
+                    Log.i("RESULTADO MULTIQUERY", "Result: " + response.toString());
+                }                  
+        }); 
+        Request.executeBatchAsync(request);                 
+    }
+});*/
