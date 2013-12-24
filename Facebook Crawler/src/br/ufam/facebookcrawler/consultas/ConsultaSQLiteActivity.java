@@ -24,6 +24,7 @@ public class ConsultaSQLiteActivity extends Activity {
 		Toast.makeText(this,"STATUS:"+buffer.toString(),1).show();
 		InternalStorageManager.exportDB(getBaseContext());
 		SQLiteManager.queryUser(this);
+		/*Comecar a desenvolver aqui*/
 	}
 	@Override
 	protected void onStart(){
